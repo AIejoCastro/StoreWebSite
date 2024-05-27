@@ -1,13 +1,41 @@
 const express = require('express');
+const bodyParser = require('body-parser');
+const cors = require('cors');
 const app = express();
-const routes = require('./routes');
-const PORT = 3000;
+const port = 3000;
 
-app.use(express.json());
-app.use(express.static('public'));
+app.use(cors());
+app.use(bodyParser.json());
+app.use(bodyParser.urlencoded({ extended: true }));
 
-app.use('/api', routes);
+let users = []; // Aquí se almacenarán los usuarios registrados
+let sessions = {}; // Aquí se almacenarán las sesiones activas
 
-app.listen(PORT, () => {
-    console.log(`Server is running on http://localhost:${PORT}`);
+app.post('/api/users/register', (req, res) => {
+    const { username, password } = req.body;
+    const userExists = users.some(user => user.username === username);
+
+    if (userExists) {
+        return res.status(400).send('User already exists');
+    }
+
+    users.push({ username, password });
+    res.send('User registered successfully');
+});
+
+app.post('/api/users/login', (req, res) => {
+    const { username, password } = req.body;
+    const user = users.find(user => user.username === username && user.password === password);
+
+    if (!user) {
+        return res.status(401).send('Invalid username or password');
+    }
+
+    const sessionId = Math.random().toString(36).substring(2);
+    sessions[sessionId] = username;
+    res.json({ sessionId });
+});
+
+app.listen(port, () => {
+    console.log(`Server running on http://localhost:${port}`);
 });

@@ -1,6 +1,7 @@
 document.addEventListener('DOMContentLoaded', () => {
     const app = document.getElementById('app');
 
+    // Render login form
     function renderLoginForm() {
         app.innerHTML = `
             <h2>Login</h2>
@@ -15,6 +16,7 @@ document.addEventListener('DOMContentLoaded', () => {
         document.getElementById('login-form').addEventListener('submit', login);
     }
 
+    // Render register form
     function renderRegisterForm() {
         app.innerHTML = `
             <h2>Register</h2>
@@ -29,6 +31,7 @@ document.addEventListener('DOMContentLoaded', () => {
         document.getElementById('register-form').addEventListener('submit', register);
     }
 
+    // Render product list
     function renderProductList(products) {
         app.innerHTML = `
             <h2>Products</h2>
@@ -45,6 +48,7 @@ document.addEventListener('DOMContentLoaded', () => {
         `;
     }
 
+    // Render cart
     function renderCart(cartItems) {
         app.innerHTML = `
             <h2>Cart</h2>
@@ -58,11 +62,13 @@ document.addEventListener('DOMContentLoaded', () => {
         `;
     }
 
+    // Login function
     function login(event) {
         event.preventDefault();
         const username = event.target.username.value;
         const password = event.target.password.value;
-        fetch('/api/users/login', {
+
+        fetch('http://localhost:3000/api/users/login', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ username, password })
@@ -76,14 +82,17 @@ document.addEventListener('DOMContentLoaded', () => {
                 } else {
                     alert('Login failed');
                 }
-            });
+            })
+            .catch(error => console.error('Error:', error));
     }
 
+    // Register function
     function register(event) {
         event.preventDefault();
         const username = event.target.username.value;
         const password = event.target.password.value;
-        fetch('/api/users/register', {
+
+        fetch('http://localhost:3000/api/users/register', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ username, password })
@@ -92,23 +101,37 @@ document.addEventListener('DOMContentLoaded', () => {
             .then(data => {
                 alert(data);
                 window.location.href = 'login.html';
-            });
+            })
+            .catch(error => console.error('Error:', error));
     }
 
+    // Add to cart function
     function addToCart(productId) {
-        // Add logic to add product to cart
+        // Logic to add product to cart
     }
 
+    // Checkout function
     function checkout() {
-        // Add logic to checkout
+        // Logic to checkout
     }
 
-    // Navegación
+    // Check the current page and render the appropriate form or page
+    if (window.location.pathname.endsWith('login.html')) {
+        renderLoginForm();
+    } else if (window.location.pathname.endsWith('register.html')) {
+        renderRegisterForm();
+    } else if (window.location.pathname.endsWith('index.html')) {
+        // You can render the main page content or products list here
+    }
+
+    // Add navigation links functionality
     document.getElementById('products-link')?.addEventListener('click', () => renderProductList([]));
     document.getElementById('cart-link')?.addEventListener('click', () => renderCart([]));
 
-    // Verifica la URL y redirige a login.html si es necesario
+    // Redirect to login page if trying to access index.html without being logged in
     if (window.location.pathname === '/' || window.location.pathname === '/index.html') {
-        window.location.href = 'login.html';
+        if (!sessionStorage.getItem('sessionId')) {
+            window.location.href = 'login.html';
+        }
     }
 });
