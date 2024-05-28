@@ -34,7 +34,9 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function renderStore(role) {
-        renderProductList([]);
+        fetch('/products')
+            .then(response => response.json())
+            .then(products => renderProductList(products, role));
 
         if (role === 'admin') {
             const adminButton = document.createElement('button');
@@ -46,6 +48,37 @@ document.addEventListener('DOMContentLoaded', () => {
             const cartButtonContainer = document.getElementById('admin-cart-buttons');
             cartButtonContainer.appendChild(adminButton);
         }
+    }
+
+    function addProduct(event) {
+        event.preventDefault();
+
+        const name = document.getElementById('name').value;
+        const description = document.getElementById('description').value;
+        const price = document.getElementById('price').value;
+
+        fetch('/products', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'session-id': sessionStorage.getItem('sessionId')
+            },
+            body: JSON.stringify({ name, description, price })
+        })
+            .then(response => {
+                if (response.ok) {
+                    alert('Product added successfully');
+                    window.location.href = '/'; // Redirect to the product list
+                } else {
+                    alert('Failed to add product');
+                }
+            });
+    }
+
+    // Add the event listener to the form
+    const addProductForm = document.getElementById('add-product-form');
+    if (addProductForm) {
+        addProductForm.addEventListener('submit', addProduct);
     }
 
 
@@ -122,6 +155,45 @@ document.addEventListener('DOMContentLoaded', () => {
                 window.location.href = 'login.html';
             })
             .catch(error => console.error('Error:', error));
+    }
+
+    // Render product list
+    function renderProductList(products, role) {
+        app.innerHTML = `
+        <h2>Products</h2>
+        <div class="product-list">
+            ${products.map(product => `
+                <div class="product-item">
+                    <h3>${product.name}</h3>
+                    <p>${product.description}</p>
+                    <p>$${product.price}</p>
+                    <button onclick="addToCart(${product.id})">Add to Cart</button>
+                    ${role === 'admin' ? `<button onclick="deleteProduct(${product.id})">Delete</button>` : ''}
+                </div>
+            `).join('')}
+        </div>
+    `;
+    }
+
+    // Delete product function
+    function deleteProduct(productId) {
+        // Make a DELETE request to the server
+        fetch(`/products/${productId}`, {
+            method: 'DELETE',
+            headers: {
+                'session-id': sessionStorage.getItem('sessionId')
+            }
+        })
+            .then(response => {
+                if (response.ok) {
+                    // If the product was successfully deleted, re-render the product list
+                    fetch('/products')
+                        .then(response => response.json())
+                        .then(products => renderProductList(products, sessionStorage.getItem('role')));
+                } else {
+                    console.error('Failed to delete product');
+                }
+            });
     }
 
     // Add to cart function

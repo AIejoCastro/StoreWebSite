@@ -98,4 +98,24 @@ router.get('/users/purchases', isLoggedIn, (req, res) => {
     res.send(user.purchases);
 });
 
+// Delete a product (admin only)
+router.delete('/products/:id', isAdmin, (req, res) => {
+    const id = req.params.id;
+    const index = products.findIndex(p => p.id === id);
+    if (index !== -1) {
+        products.splice(index, 1);
+        res.status(200).send('Product deleted');
+    } else {
+        res.status(404).send('Product not found');
+    }
+});
+
+// Add a product (admin only)
+router.post('/products', isAdmin, (req, res) => {
+    const product = req.body;
+    // Add the product to your database
+    // ...
+    res.status(201).send('Product added');
+});
+
 module.exports = router;
