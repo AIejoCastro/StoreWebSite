@@ -26,14 +26,20 @@ function isLoggedIn(req, res, next) {
     }
 }
 
-// Admin login
-router.post('/admin/login', (req, res) => {
+// User login
+router.post('/users/login', (req, res) => {
     const { username, password } = req.body;
-    // Example credentials check
-    if (username === 'admin' && password === 'password') {
+    let role = 'user';
+
+    if (username === 'admin' && password === '1234') {
+        role = 'admin';
+    }
+
+    const user = users.find(u => u.username === username && u.password === password);
+    if (user) {
         const sessionId = new Date().toISOString();
-        sessions[sessionId] = { role: 'admin' };
-        res.send({ sessionId });
+        sessions[sessionId] = { role, username };
+        res.send({ sessionId, role });
     } else {
         res.status(401).send('Unauthorized');
     }

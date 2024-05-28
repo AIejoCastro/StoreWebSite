@@ -1,5 +1,6 @@
 document.addEventListener('DOMContentLoaded', () => {
     const app = document.getElementById('app');
+    const cart = [];
 
     // Render login form
     function renderLoginForm() {
@@ -10,6 +11,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 <input type="text" id="username" name="username" required>
                 <label for="password">Password:</label>
                 <input type="password" id="password" name="password" required>
+                <li><a href="register.html" id="register">Register</a></li>
                 <button type="submit">Login</button>
             </form>
         `;
@@ -30,6 +32,22 @@ document.addEventListener('DOMContentLoaded', () => {
         `;
         document.getElementById('register-form').addEventListener('submit', register);
     }
+
+    function renderStore(role) {
+        renderProductList([]);
+
+        if (role === 'admin') {
+            const adminButton = document.createElement('button');
+            adminButton.textContent = 'Agregar Producto';
+            adminButton.onclick = () => {
+                window.location.href = '/add_product.html';
+            };
+
+            const cartButtonContainer = document.getElementById('admin-cart-buttons');
+            cartButtonContainer.appendChild(adminButton);
+        }
+    }
+
 
     // Render product list
     function renderProductList(products) {
@@ -78,7 +96,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (data.sessionId) {
                     sessionStorage.setItem('sessionId', data.sessionId);
                     alert('Login successful');
-                    window.location.href = 'index.html';
+                    renderStore(data.role);
+                    window.location.href = 'store.html';
                 } else {
                     alert('Login failed');
                 }

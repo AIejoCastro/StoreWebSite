@@ -1,0 +1,206 @@
+/* Reset some default browser styles */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: Arial, sans-serif;
+    line-height: 1.6;
+}
+
+header {
+    background-color: #333;
+    color: #fff;
+    padding: 1rem 5%;
+    text-align: center;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+header h1 {
+    margin: 0;
+}
+
+#search-form {
+    margin: 1rem 5%;
+    display: flex;
+    justify-content: center;
+}
+
+#search-input {
+    width: 30%;
+    padding: 0.5rem;
+    border: 1px solid #fff;
+    border-radius: 5px;
+}
+
+#search-input:focus {
+    outline: none;
+    border-color: #333;
+}
+
+#products-list {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-around;
+    padding: 0 5%;
+    margin-bottom: 2rem;
+}
+
+.product {
+    width: calc(33.333% - 2rem);
+    margin-bottom: 2rem;
+    padding: 1rem;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.product img {
+    width: 60%;
+    height: auto;
+    border-radius: 5px;
+}
+
+.product-info {
+    margin-top: 1rem;
+    width: 100%;
+    text-align: center;
+}
+
+.product-info h2 {
+    margin-top: 0;
+    margin-bottom: 10px;
+}
+
+.product-info p {
+    margin-bottom: 0.5rem;
+}
+
+.product-info label {
+    display: block;
+    margin-top: 1rem;
+}
+
+#quantity {
+    width: 100%;
+    padding: 0.5rem;
+    margin-top: 0.5rem;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+}
+
+.product-info button {
+    display: block;
+    width: 100%;
+    padding: 0.7rem;
+    margin-top: 1rem;
+    border: none;
+    background-color: #333;
+    color: #fff;
+    font-size: 1rem;
+    cursor: pointer;
+    border-radius: 5px;
+}
+
+.product-info button:hover {
+    background-color: #555;
+}
+
+#admin-cart-buttons {
+    display: flex;
+    align-items: center; /* Centrar verticalmente los botones */
+}
+
+#admin-button {
+    margin-left: auto; /* Mover el botón de administrador hacia la derecha */
+}
+
+#cart-icon {
+    position: relative;
+    cursor: pointer;
+}
+
+#cart-items {
+    position: absolute;
+    top: -10px;
+    right: -10px;
+    background-color: red;
+    color: white;
+    border-radius: 50%;
+    width: 20px;
+    height: 20px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 12px;
+}
+
+.cart-dropdown {
+    display: none;
+    position: absolute;
+    top: 30px;
+    right: 0;
+    width: 200px;
+    background-color: white;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    padding: 10px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    z-index: 1000;
+}
+
+.cart-dropdown ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.cart-dropdown li {
+    padding: 5px 0;
+    border-bottom: 1px solid #ccc;
+}
+
+.cart-dropdown li:last-child {
+    border-bottom: none;
+}
+
+.cart-dropdown li span {
+    margin-left: 10px;
+}
+
+.cart-dropdown li span.price {
+    float: right;
+}
+
+#checkout-button {
+    display: block;
+    width: 100%;
+    padding: 0.7rem;
+    border: none;
+    background-color: #333;
+    color: #fff;
+    font-size: 1rem;
+    cursor: pointer;
+    border-radius: 5px;
+}
+
+#checkout-button:hover {
+    background-color: #555;
+}
+
+footer {
+    text-align: center;
+    padding: 1rem 0;
+    background-color: #333;
+    color: #fff;
+    position: fixed;
+    bottom: 0;
+    width: 100%;
+}

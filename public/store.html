@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Online Store</title>
+    <link rel="stylesheet" href="menu.css">
+    <script src="https://kit.fontawesome.com/a076d05399.js" crossorigin="anonymous"></script>
+</head>
+<body>
+<header>
+    <h1>Online Store</h1>
+    <!-- Contenedor para los botones del carrito y de administrador -->
+    <div id="admin-cart-buttons">
+        <!-- Botón para agregar productos -->
+        <!-- Este botón será agregado dinámicamente por JavaScript -->
+        <!-- Botón del carrito -->
+        <div id="cart-icon">
+            <i class="fas fa-shopping-cart"></i>
+            <div id="cart-items" class="cart-items">0</div>
+            <div id="cart-dropdown" class="cart-dropdown">
+                <ul></ul>
+            </div>
+        </div>
+    </div>
+</header>
+
+<main>
+    <form id="search-form">
+        <input type="text" id="search-input" placeholder="Looking for a product?">
+        <button type="submit">Search</button>
+    </form>
+    <section id="products-list">
+        <!-- Aquí se mostrará la lista de productos disponibles -->
+        <!-- Los productos se cargarán dinámicamente con JavaScript -->
+    </section>
+</main>
+
+<footer>
+    <p>&copy; 2024 Online Store. All rights reserved.</p>
+</footer>
+
+<script src="app.js"></script>
+</body>
+</html>
