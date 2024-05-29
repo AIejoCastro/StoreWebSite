@@ -35,16 +35,16 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function renderLoginAdminForm() {
         app.innerHTML = `
-            <h2>Admin Login</h2>
-            <form id="login-form">
-                <label for="username">Username:</label>
-                <input type="text" id="username" name="username" required>
-                <label for="password">Password:</label>
-                <input type="password" id="password" name="password" required>
-                <button type="submit">Login</button>
-            </form>
-        `;
-        document.getElementById('loginAdmin-form').addEventListener('submit', login);
+        <h2>Admin Login</h2>
+        <form id="login-admin-form">
+            <label for="username">Username:</label>
+            <input type="text" id="username" name="username" required>
+            <label for="password">Password:</label>
+            <input type="password" id="password" name="password" required>
+            <button type="submit">Login</button>
+        </form>
+    `;
+        document.getElementById('login-admin-form').addEventListener('submit', loginAdmin);
     }
 
     function renderUserTypeForm() {
@@ -168,6 +168,29 @@ document.addEventListener('DOMContentLoaded', () => {
             .catch(error => console.error('Error:', error));
     }
 
+    function loginAdmin(event) {
+        event.preventDefault();
+        const username = event.target.username.value;
+        const password = event.target.password.value;
+
+        fetch('http://localhost:3000/api/users/login', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ username, password })
+        })
+            .then(response => response.json())
+            .then(data => {
+                if (data.sessionId) {
+                    sessionStorage.setItem('sessionId', data.sessionId);
+                    alert('Login successful');
+                    window.location.href = 'add_product.html'; // Redirige a add_product.html después del inicio de sesión exitoso
+                } else {
+                    alert('Login failed');
+                }
+            })
+            .catch(error => console.error('Error:', error));
+    }
+
     // Register function
     function register(event) {
         event.preventDefault();
@@ -181,7 +204,7 @@ document.addEventListener('DOMContentLoaded', () => {
         })
             .then(response => response.text())
             .then(data => {
-                alert(data);
+                alert('Registration successful');
                 window.location.href = 'user_type.html'; // Redirigir a la página de selección de tipo de usuario después del registro
             })
             .catch(error => console.error('Error:', error));

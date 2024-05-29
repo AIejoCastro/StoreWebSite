@@ -45,7 +45,7 @@ app.post('/api/users/login', (req, res) => {
 
 // Capturar todas las demás rutas y redirigir a la página principal
 app.get('/', (req, res) => {
-    res.sendFile(path.join(__dirname, '../public', 'register.html'));
+    res.redirect('/register.html');
 });
 
 app.listen(port, () => {
