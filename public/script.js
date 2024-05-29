@@ -5,7 +5,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // Render login form
     function renderLoginForm() {
         app.innerHTML = `
-            <h2>Login</h2>
+            <h2>User Login</h2>
             <form id="login-form">
                 <label for="username">Username:</label>
                 <input type="text" id="username" name="username" required>
@@ -31,6 +31,31 @@ document.addEventListener('DOMContentLoaded', () => {
             </form>
         `;
         document.getElementById('register-form').addEventListener('submit', register);
+    }
+
+    function renderLoginAdminForm() {
+        app.innerHTML = `
+            <h2>Admin Login</h2>
+            <form id="login-form">
+                <label for="username">Username:</label>
+                <input type="text" id="username" name="username" required>
+                <label for="password">Password:</label>
+                <input type="password" id="password" name="password" required>
+                <button type="submit">Login</button>
+            </form>
+        `;
+        document.getElementById('loginAdmin-form').addEventListener('submit', login);
+    }
+
+    function renderUserTypeForm() {
+        app.innerHTML = `
+            <h2>Choose Your Role</h2>
+                <div class="role-selection">
+                    <button id="admin-button">Administrator</button>
+                    <button id="customer-button">Customer</button>
+                </div>
+        `;
+        document.getElementById('loginAdmin-form').addEventListener('submit', login);
     }
 
     function renderStore(role) {
@@ -213,8 +238,11 @@ document.addEventListener('DOMContentLoaded', () => {
         renderRegisterForm();
     } else if (window.location.pathname.endsWith('index.html')) {
         // You can render the main page content or products list here
+    } else if (window.location.pathname.endsWith('login_admin.html')) {
+        renderLoginAdminForm();
+    } else if (window.location.pathname.endsWith('user_type.html')) {
+        renderUserTypeForm();
     }
-
     // Add navigation links functionality
     document.getElementById('products-link')?.addEventListener('click', () => renderProductList([]));
     document.getElementById('cart-link')?.addEventListener('click', () => renderCart([]));
@@ -225,4 +253,17 @@ document.addEventListener('DOMContentLoaded', () => {
             window.location.href = 'login.html';
         }
     }
+
+    document.addEventListener('DOMContentLoaded', () => {
+        const adminButton = document.getElementById('admin-button');
+        const customerButton = document.getElementById('customer-button');
+
+        adminButton.addEventListener('click', () => {
+            window.location.href = 'login_admin.html'; // Redirige a la página de inicio de sesión del administrador
+        });
+
+        customerButton.addEventListener('click', () => {
+            window.location.href = 'login.html'; // Redirige a la página de inicio de sesión del cliente
+        });
+    });
 });
