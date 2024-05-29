@@ -27,7 +27,7 @@ app.post('/api/users/register', (req, res) => {
     }
 
     users.push({ username, password });
-    res.send('User registered successfully');
+    res.redirect('/user_type.html'); // Redirigir después del registro
 });
 
 app.post('/api/users/login', (req, res) => {
@@ -44,7 +44,7 @@ app.post('/api/users/login', (req, res) => {
 });
 
 // Capturar todas las demás rutas y redirigir a la página principal
-app.get('*', (req, res) => {
+app.get('/', (req, res) => {
     res.sendFile(path.join(__dirname, '../public', 'register.html'));
 });
 

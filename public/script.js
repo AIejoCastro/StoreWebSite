@@ -49,13 +49,18 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function renderUserTypeForm() {
         app.innerHTML = `
-            <h2>Choose Your Role</h2>
-                <div class="role-selection">
-                    <button id="admin-button">Administrator</button>
-                    <button id="customer-button">Customer</button>
-                </div>
-        `;
-        document.getElementById('loginAdmin-form').addEventListener('submit', login);
+        <h2>Choose Your Role</h2>
+        <div class="role-selection">
+            <button id="admin-button">Administrator</button>
+            <button id="customer-button">Customer</button>
+        </div>
+    `;
+        document.getElementById('admin-button').addEventListener('click', () => {
+            window.location.href = 'login_admin.html';
+        });
+        document.getElementById('customer-button').addEventListener('click', () => {
+            window.location.href = 'login.html';
+        });
     }
 
     function renderStore(role) {
@@ -93,7 +98,7 @@ document.addEventListener('DOMContentLoaded', () => {
             .then(response => {
                 if (response.ok) {
                     alert('Product added successfully');
-                    window.location.href = '/'; // Redirect to the product list
+                    window.location.href = '/store.html'; // Redirect to the product list
                 } else {
                     alert('Failed to add product');
                 }
@@ -177,7 +182,7 @@ document.addEventListener('DOMContentLoaded', () => {
             .then(response => response.text())
             .then(data => {
                 alert(data);
-                window.location.href = 'login.html';
+                window.location.href = 'user_type.html'; // Redirigir a la página de selección de tipo de usuario después del registro
             })
             .catch(error => console.error('Error:', error));
     }
