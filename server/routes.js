@@ -31,10 +31,6 @@ router.post('/users/login', (req, res) => {
     const { username, password } = req.body;
     let role = 'user';
 
-    if (username === 'admin' && password === '1234') {
-        role = 'admin';
-    }
-
     const user = users.find(u => u.username === username && u.password === password);
     if (user) {
         const sessionId = new Date().toISOString();
@@ -45,16 +41,15 @@ router.post('/users/login', (req, res) => {
     }
 });
 
-// Add a product (admin only)
 router.post('/products', isAdmin, (req, res) => {
     const product = req.body;
     products.push(product);
-    res.status(201).send(product);
+    res.status(201).json(product); // Change to JSON response
 });
 
 // List products
 router.get('/products', (req, res) => {
-    res.send(products);
+    res.json(products); // Change to JSON response
 });
 
 // User registration

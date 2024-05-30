@@ -87,6 +87,8 @@ document.addEventListener('DOMContentLoaded', () => {
         const description = document.getElementById('description').value;
         const price = document.getElementById('price').value;
 
+        console.log('Sending product data to server:', { name, description, price });
+
         fetch('/products', {
             method: 'POST',
             headers: {
@@ -97,20 +99,28 @@ document.addEventListener('DOMContentLoaded', () => {
         })
             .then(response => {
                 if (response.ok) {
-                    alert('Product added successfully');
-                    window.location.href = '/store.html'; // Redirect to the product list
+                    console.log('Product added successfully:', response);
+                    return response.json();
                 } else {
-                    alert('Failed to add product');
+                    console.error('Failed to add product:', response.statusText);
+                    throw new Error('Failed to add product');
                 }
+            })
+            .then(product => {
+                alert(`Product added successfully:\nName: ${product.name}\nDescription: ${product.description}\nPrice: ${product.price}`);
+                window.location.href = '/store.html';
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('Failed to add product');
             });
     }
 
-    // Add the event listener to the form
+// Add the event listener to the form
     const addProductForm = document.getElementById('add-product-form');
     if (addProductForm) {
         addProductForm.addEventListener('submit', addProduct);
     }
-
 
     // Render product list
     function renderProductList(products) {
