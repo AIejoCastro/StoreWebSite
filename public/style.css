@@ -23,27 +23,6 @@ header h1 {
     margin-bottom: 0.5rem;
 }
 
-nav ul {
-    list-style: none;
-    padding: 0;
-    text-align: center;
-}
-
-nav ul li {
-    display: inline;
-    margin: 0 1rem;
-}
-
-nav ul li a {
-    color: #fff;
-    text-decoration: none;
-    font-weight: bold;
-}
-
-nav ul li a:hover {
-    text-decoration: underline;
-}
-
 main {
     padding: 2rem;
     max-width: 800px;
@@ -51,6 +30,11 @@ main {
     background: #fff;
     border-radius: 5px;
     box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+}
+
+main h2 {
+    text-align: center;
+    margin-bottom: 1.5rem;
 }
 
 footer {
@@ -98,5 +82,27 @@ form button {
 }
 
 form button:hover {
+    background-color: #555;
+}
+
+.role-selection {
+    display: flex;
+    justify-content: center;
+    gap: 1rem;
+    margin-top: 2rem;
+}
+
+.role-selection button {
+    padding: 1rem 2rem;
+    border: none;
+    border-radius: 5px;
+    background-color: #333;
+    color: #fff;
+    font-size: 1.2rem;
+    cursor: pointer;
+    transition: background-color 0.3s;
+}
+
+.role-selection button:hover {
     background-color: #555;
 }

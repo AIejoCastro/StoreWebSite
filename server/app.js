@@ -45,8 +45,8 @@ app.post('/api/users/register', (req, res) => {
         return res.status(400).send('User already exists');
     }
 
-    users.push({ username, password, role });
-    res.send('User registered successfully');
+    users.push({ username, password });
+    res.redirect('/user_type.html'); // Redirigir después del registro
 });
 
 // Ruta para iniciar sesión
@@ -77,8 +77,8 @@ app.get('/api/products', (req, res) => {
 });
 
 // Capturar todas las demás rutas y redirigir a la página principal
-app.get('*', (req, res) => {
-    res.sendFile(path.join(__dirname, '../public', 'store.html'));
+app.get('/', (req, res) => {
+    res.redirect('/register.html');
 });
 
 app.listen(port, () => {
