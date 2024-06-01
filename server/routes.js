@@ -29,23 +29,20 @@ function isLoggedIn(req, res, next) {
 // User login
 router.post('/users/login', (req, res) => {
     const { username, password } = req.body;
-    let role = 'user';
-
     const user = users.find(u => u.username === username && u.password === password);
     if (user) {
         const sessionId = new Date().toISOString();
-        sessions[sessionId] = { role: user.role, username: user.username };
+        sessions[sessionId] = { role: user.role, username };
         res.send({ sessionId, role: user.role });
     } else {
         res.status(401).send('Unauthorized');
     }
 });
-
-
+// Add a product (admin only)
 router.post('/products', isAdmin, (req, res) => {
     const product = req.body;
     products.push(product);
-    res.status(201).json(product); // Change to JSON response
+    res.status(201).send(product);
 });
 
 
@@ -65,19 +62,6 @@ router.post('/users/register', isLoggedIn, isAdmin, (req, res) => {
     }
     users.push({ username, password, role, purchases: [] });
     res.status(201).send('User registered');
-});
-
-// User login
-router.post('/users/login', (req, res) => {
-    const { username, password } = req.body;
-    const user = users.find(u => u.username === username && u.password === password);
-    if (user) {
-        const sessionId = new Date().toISOString();
-        sessions[sessionId] = { role: user.role, username };
-        res.send({ sessionId, role: user.role });
-    } else {
-        res.status(401).send('Unauthorized');
-    }
 });
 
 // Purchase a product

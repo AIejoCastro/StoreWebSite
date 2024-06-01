@@ -5,7 +5,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // Render login form
     function renderLoginForm() {
         app.innerHTML = `
-            <h2>User Login</h2>
+            <h2>Login</h2>
             <form id="login-form">
                 <label for="username">Username:</label>
                 <input type="text" id="username" name="username" required>
@@ -38,37 +38,7 @@ document.addEventListener('DOMContentLoaded', () => {
         document.getElementById('register-form').addEventListener('submit', register);
     }
 
-    function renderLoginAdminForm() {
-        app.innerHTML = `
-        <h2>Admin Login</h2>
-        <form id="login-admin-form">
-            <label for="username">Username:</label>
-            <input type="text" id="username" name="username" required>
-            <label for="password">Password:</label>
-            <input type="password" id="password" name="password" required>
-            <button type="submit">Login</button>
-        </form>
-    `;
-        document.getElementById('login-admin-form').addEventListener('submit', loginAdmin);
-    }
-
-    function renderUserTypeForm() {
-        app.innerHTML = `
-        <h2>Choose Your Role</h2>
-        <div class="role-selection">
-            <button id="admin-button">Administrator</button>
-            <button id="customer-button">Customer</button>
-        </div>
-    `;
-        document.getElementById('admin-button').addEventListener('click', () => {
-            window.location.href = 'login_admin.html';
-        });
-        document.getElementById('customer-button').addEventListener('click', () => {
-            window.location.href = 'login.html';
-        });
-    }
-
-    function renderStore(role) {
+    function renderStore() {
         fetch('/products')
             .then(response => response.json())
             .then(products => renderProductList(products));
@@ -95,15 +65,12 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
 
-
     function addProduct(event) {
         event.preventDefault();
 
         const name = document.getElementById('name').value;
         const description = document.getElementById('description').value;
         const price = document.getElementById('price').value;
-
-        console.log('Sending product data to server:', { name, description, price });
 
         fetch('/products', {
             method: 'POST',
@@ -115,28 +82,20 @@ document.addEventListener('DOMContentLoaded', () => {
         })
             .then(response => {
                 if (response.ok) {
-                    console.log('Product added successfully:', response);
-                    return response.json();
+                    alert('Product added successfully');
+                    window.location.href = '/'; // Redirect to the product list
                 } else {
-                    console.error('Failed to add product:', response.statusText);
-                    throw new Error('Failed to add product');
+                    alert('Failed to add product');
                 }
-            })
-            .then(product => {
-                alert(`Product added successfully:\nName: ${product.name}\nDescription: ${product.description}\nPrice: ${product.price}`);
-                window.location.href = '/store.html';
-            })
-            .catch(error => {
-                console.error('Error:', error);
-                alert('Failed to add product');
             });
     }
 
-// Add the event listener to the form
+    // Add the event listener to the form
     const addProductForm = document.getElementById('add-product-form');
     if (addProductForm) {
         addProductForm.addEventListener('submit', addProduct);
     }
+
 
     // Render product list
     function renderProductList(products) {
@@ -194,28 +153,6 @@ document.addEventListener('DOMContentLoaded', () => {
             .catch(error => console.error('Error:', error));
     }
 
-    function loginAdmin(event) {
-        event.preventDefault();
-        const username = event.target.username.value;
-        const password = event.target.password.value;
-
-        fetch('http://localhost:3000/api/users/login', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ username, password })
-        })
-            .then(response => response.json())
-            .then(data => {
-                if (data.sessionId) {
-                    sessionStorage.setItem('sessionId', data.sessionId);
-                    alert('Login successful');
-                    window.location.href = 'add_product.html'; // Redirige a add_product.html después del inicio de sesión exitoso
-                } else {
-                    alert('Login failed');
-                }
-            })
-            .catch(error => console.error('Error:', error));
-    }
 
     // Register function
     function register(event) {
@@ -234,12 +171,11 @@ document.addEventListener('DOMContentLoaded', () => {
         })
             .then(response => response.text())
             .then(data => {
-                alert('Registration successful');
-                window.location.href = 'user_type.html'; // Redirigir a la página de selección de tipo de usuario después del registro
+                alert(data);
+                window.location.href = 'login.html';
             })
             .catch(error => console.error('Error:', error));
     }
-
 
     // Render product list
     function renderProductList(products, role) {
@@ -297,11 +233,8 @@ document.addEventListener('DOMContentLoaded', () => {
         renderRegisterForm();
     } else if (window.location.pathname.endsWith('index.html')) {
         // You can render the main page content or products list here
-    } else if (window.location.pathname.endsWith('login_admin.html')) {
-        renderLoginAdminForm();
-    } else if (window.location.pathname.endsWith('user_type.html')) {
-        renderUserTypeForm();
     }
+
     // Add navigation links functionality
     document.getElementById('products-link')?.addEventListener('click', () => renderProductList([]));
     document.getElementById('cart-link')?.addEventListener('click', () => renderCart([]));
@@ -312,17 +245,4 @@ document.addEventListener('DOMContentLoaded', () => {
             window.location.href = 'login.html';
         }
     }
-
-    document.addEventListener('DOMContentLoaded', () => {
-        const adminButton = document.getElementById('admin-button');
-        const customerButton = document.getElementById('customer-button');
-
-        adminButton.addEventListener('click', () => {
-            window.location.href = 'login_admin.html'; // Redirige a la página de inicio de sesión del administrador
-        });
-
-        customerButton.addEventListener('click', () => {
-            window.location.href = 'login.html'; // Redirige a la página de inicio de sesión del cliente
-        });
-    });
 });

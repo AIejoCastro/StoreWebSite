@@ -1,86 +1,122 @@
 const express = require('express');
-const bodyParser = require('body-parser');
-const cors = require('cors');
-const path = require('path');
+const router = express.Router();
 
-const app = express();
-const port = 3000;
+let products = [];
+let users = [];
+let sessions = {};
 
-// Middleware
-app.use(cors());
-app.use(bodyParser.json());
-app.use(bodyParser.urlencoded({ extended: true }));
-
-// Servir archivos estáticos desde la carpeta 'public'
-app.use(express.static(path.join(__dirname, '../public')));
-
-let users = []; // Aquí se almacenarán los usuarios registrados
-let sessions = {}; // Aquí se almacenarán las sesiones activas
-let products = []; // Aquí se almacenarán los productos
-
-// Middleware para verificar si el usuario es administrador
+// Middleware to check if user is admin
 function isAdmin(req, res, next) {
-    const sessionId = req.headers['session-id'];
-    const username = sessions[sessionId];
-
-    if (!username) {
-        return res.status(401).send('Unauthorized');
-    }
-
-    const user = users.find(user => user.username === username);
-
-    if (user && user.role === 'admin') {
+    const session = sessions[req.headers['session-id']];
+    if (session && session.role === 'admin') {
         next();
     } else {
         res.status(403).send('Forbidden');
     }
 }
 
-// Ruta para registrar usuarios
-app.post('/api/users/register', (req, res) => {
-    const { username, password, role } = req.body;
-    const userExists = users.some(user => user.username === username);
-
-    if (userExists) {
-        return res.status(400).send('User already exists');
+// Middleware to check if user is logged in
+function isLoggedIn(req, res, next) {
+    const session = sessions[req.headers['session-id']];
+    if (session) {
+        req.user = session;
+        next();
+    } else {
+        res.status(401).send('Unauthorized');
     }
+}
 
-    users.push({ username, password });
-    res.redirect('/user_type.html'); // Redirigir después del registro
-});
-
-// Ruta para iniciar sesión
-app.post('/api/users/login', (req, res) => {
+// User login
+router.post('/users/login', (req, res) => {
     const { username, password } = req.body;
-    const user = users.find(user => user.username === username && user.password === password);
-
-    if (!user) {
-        return res.status(401).send('Invalid username or password');
+    const user = users.find(u => u.username === username && u.password === password);
+    if (user) {
+        const sessionId = new Date().toISOString();
+        sessions[sessionId] = { role: user.role, username: user.username };
+        res.send({ sessionId, role: user.role });
+    } else {
+        res.status(401).send('Unauthorized');
     }
-
-    const sessionId = Math.random().toString(36).substring(2);
-    sessions[sessionId] = username;
-    res.json({ sessionId, role: user.role });
 });
 
-// Ruta para agregar productos (solo para administradores)
-app.post('/api/products', isAdmin, (req, res) => {
-    const { name, description, price } = req.body;
-    const id = products.length + 1;
-    products.push({ id, name, description, price });
-    res.status(201).send('Product added successfully');
+// Add a product (admin only)
+router.post('/products', isLoggedIn, isAdmin, (req, res) => {
+    const product = req.body;
+    products.push(product);
+    res.status(201).send('Product added');
 });
 
-// Ruta para obtener productos
-app.get('/api/products', (req, res) => {
-    res.json(products);
+// List products
+router.get('/products', (req, res) => {
+    res.send(products);
 });
 
-// Capturar todas las demás rutas y redirigir a la página principal
-app.get('/', (req, res) => {
-    res.redirect('/register.html');
+// User registration
+router.post('/users/register', isLoggedIn, isAdmin, (req, res) => {
+    const { username, password, role } = req.body;
+    if (!username || !password || !role) {
+        return res.status(400).send('Missing required fields');
+    }
+    if (role !== 'user' && role !== 'admin') {
+        return res.status(400).send('Invalid role');
+    }
+    users.push({ username, password, role, purchases: [] });
+    res.status(201).send('User registered');
 });
 
-app.listen(port, () => {
-    console.log(`Server running on http://localhost:${port}`);
+
+// User login
+router.post('/users/login', (req, res) => {
+    const { username, password } = req.body;
+    const user = users.find(u => u.username === username && u.password === password);
+    if (user) {
+        const sessionId = new Date().toISOString();
+        sessions[sessionId] = { role: user.role, username };
+        res.send({ sessionId, role: user.role });
+    } else {
+        res.status(401).send('Unauthorized');
+    }
 });
+
+// Purchase a product
+router.post('/purchase', isLoggedIn, (req, res) => {
+    const { productId, quantity } = req.body;
+    const product = products.find(p => p.id === productId);
+    if (product && product.quantity >= quantity) {
+        product.quantity -= quantity;
+        const purchase = { productId, quantity, date: new Date() };
+        const user = users.find(u => u.username === req.user.username);
+        user.purchases.push(purchase);
+        res.send(purchase);
+    } else {
+        res.status(400).send('Invalid purchase');
+    }
+});
+
+// View purchase history
+router.get('/users/purchases', isLoggedIn, (req, res) => {
+    const user = users.find(u => u.username === req.user.username);
+    res.send(user.purchases);
+});
+
+// Delete a product (admin only)
+router.delete('/products/:id', isAdmin, (req, res) => {
+    const id = req.params.id;
+    const index = products.findIndex(p => p.id === id);
+    if (index !== -1) {
+        products.splice(index, 1);
+        res.status(200).send('Product deleted');
+    } else {
+        res.status(404).send('Product not found');
+    }
+});
+
+// Add a product (admin only)
+router.post('/products', isAdmin, (req, res) => {
+    const product = req.body;
+    // Add the product to your database
+    // ...
+    res.status(201).send('Product added');
+});
+
+module.exports = router;
