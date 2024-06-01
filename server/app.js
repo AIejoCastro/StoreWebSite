@@ -1,122 +1,103 @@
 const express = require('express');
-const router = express.Router();
+const bodyParser = require('body-parser');
+const cors = require('cors');
+const path = require('path');
+const { v4: uuidv4 } = require('uuid'); // Import the uuid module
 
-let products = [];
-let users = [];
-let sessions = {};
+const app = express();
+const port = 3000;
+
+// Middleware
+app.use(cors());
+app.use(bodyParser.json());
+app.use(bodyParser.urlencoded({ extended: true }));
+app.use(express.static(path.join(__dirname, '../public')));
+
+let users = []; // Store registered users
+let sessions = {}; // Store active sessions
+let products = []; // Store products
 
 // Middleware to check if user is admin
 function isAdmin(req, res, next) {
-    const session = sessions[req.headers['session-id']];
-    if (session && session.role === 'admin') {
+    const sessionId = req.headers['session-id'];
+    const username = sessions[sessionId];
+
+    if (!username) {
+        return res.status(401).send('Unauthorized');
+    }
+
+    const user = users.find(user => user.username === username);
+
+    if (user && user.role === 'admin') {
         next();
     } else {
         res.status(403).send('Forbidden');
     }
 }
 
-// Middleware to check if user is logged in
-function isLoggedIn(req, res, next) {
-    const session = sessions[req.headers['session-id']];
-    if (session) {
-        req.user = session;
-        next();
-    } else {
-        res.status(401).send('Unauthorized');
-    }
-}
-
-// User login
-router.post('/users/login', (req, res) => {
-    const { username, password } = req.body;
-    const user = users.find(u => u.username === username && u.password === password);
-    if (user) {
-        const sessionId = new Date().toISOString();
-        sessions[sessionId] = { role: user.role, username: user.username };
-        res.send({ sessionId, role: user.role });
-    } else {
-        res.status(401).send('Unauthorized');
-    }
-});
-
-// Add a product (admin only)
-router.post('/products', isLoggedIn, isAdmin, (req, res) => {
-    const product = req.body;
-    products.push(product);
-    res.status(201).send('Product added');
-});
-
-// List products
-router.get('/products', (req, res) => {
-    res.send(products);
-});
-
-// User registration
-router.post('/users/register', isLoggedIn, isAdmin, (req, res) => {
+// Route to register users
+app.post('/api/users/register', (req, res) => {
     const { username, password, role } = req.body;
-    if (!username || !password || !role) {
+    const userExists = users.some(user => user.username === username);
+
+    if (userExists) {
+        return res.status(400).send('User already exists');
+    }
+
+    users.push({ username, password, role });
+    res.send('User registered successfully');
+});
+
+// Route to login users
+app.post('/api/users/login', (req, res) => {
+    const { username, password } = req.body;
+    const user = users.find(user => user.username === username && user.password === password);
+
+    if (!user) {
+        return res.status(401).send('Invalid username or password');
+    }
+
+    const sessionId = Math.random().toString(36).substring(2);
+    sessions[sessionId] = username;
+    res.json({ sessionId, role: user.role });
+});
+
+// Route to add products (admin only)
+app.post('/api/products', isAdmin, (req, res) => {
+    const { name, description, price } = req.body;
+
+    if (!name || !description || !price) {
         return res.status(400).send('Missing required fields');
     }
-    if (role !== 'user' && role !== 'admin') {
-        return res.status(400).send('Invalid role');
+
+    if (typeof price !== 'number' || isNaN(price) || price < 0) {
+        return res.status(400).send('Price must be a number');
     }
-    users.push({ username, password, role, purchases: [] });
-    res.status(201).send('User registered');
+
+    const id = uuidv4(); // Use uuid to generate a unique id
+
+    const product = {
+        id,
+        name,
+        description,
+        price
+    };
+
+    products.push(product); // Add the product to the list
+
+    res.status(201).json({ message: 'Product added successfully', product });
 });
 
-
-// User login
-router.post('/users/login', (req, res) => {
-    const { username, password } = req.body;
-    const user = users.find(u => u.username === username && u.password === password);
-    if (user) {
-        const sessionId = new Date().toISOString();
-        sessions[sessionId] = { role: user.role, username };
-        res.send({ sessionId, role: user.role });
-    } else {
-        res.status(401).send('Unauthorized');
-    }
+// Route to get products
+app.get('/api/products', (req, res) => {
+    res.json(products);
 });
 
-// Purchase a product
-router.post('/purchase', isLoggedIn, (req, res) => {
-    const { productId, quantity } = req.body;
-    const product = products.find(p => p.id === productId);
-    if (product && product.quantity >= quantity) {
-        product.quantity -= quantity;
-        const purchase = { productId, quantity, date: new Date() };
-        const user = users.find(u => u.username === req.user.username);
-        user.purchases.push(purchase);
-        res.send(purchase);
-    } else {
-        res.status(400).send('Invalid purchase');
-    }
+// Capture all other routes and redirect to the main page
+app.get('*', (req, res) => {
+    res.sendFile(path.join(__dirname, '../public', 'store.html'));
 });
 
-// View purchase history
-router.get('/users/purchases', isLoggedIn, (req, res) => {
-    const user = users.find(u => u.username === req.user.username);
-    res.send(user.purchases);
+app.listen(port, () => {
+    console.log(`Server running on http://localhost:${port}`);
 });
-
-// Delete a product (admin only)
-router.delete('/products/:id', isAdmin, (req, res) => {
-    const id = req.params.id;
-    const index = products.findIndex(p => p.id === id);
-    if (index !== -1) {
-        products.splice(index, 1);
-        res.status(200).send('Product deleted');
-    } else {
-        res.status(404).send('Product not found');
-    }
-});
-
-// Add a product (admin only)
-router.post('/products', isAdmin, (req, res) => {
-    const product = req.body;
-    // Add the product to your database
-    // ...
-    res.status(201).send('Product added');
-});
-
-module.exports = router;

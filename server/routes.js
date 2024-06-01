@@ -1,11 +1,11 @@
 const express = require('express');
 const router = express.Router();
+const { v4: uuidv4 } = require('uuid');
 
 let products = [];
 let users = [];
 let sessions = {};
 
-// Middleware to check if user is admin
 function isAdmin(req, res, next) {
     const session = sessions[req.headers['session-id']];
     if (session && session.role === 'admin') {
@@ -15,7 +15,6 @@ function isAdmin(req, res, next) {
     }
 }
 
-// Middleware to check if user is logged in
 function isLoggedIn(req, res, next) {
     const session = sessions[req.headers['session-id']];
     if (session) {
@@ -26,83 +25,57 @@ function isLoggedIn(req, res, next) {
     }
 }
 
-// User login
+router.post('/users/register', (req, res) => {
+    const { username, password, role } = req.body;
+    const userExists = users.some(user => user.username === username);
+
+    if (userExists) {
+        return res.status(400).send('User already exists');
+    }
+
+    users.push({ username, password, role });
+    res.send('User registered successfully');
+});
+
 router.post('/users/login', (req, res) => {
     const { username, password } = req.body;
-    const user = users.find(u => u.username === username && u.password === password);
-    if (user) {
-        const sessionId = new Date().toISOString();
-        sessions[sessionId] = { role: user.role, username };
-        res.send({ sessionId, role: user.role });
-    } else {
-        res.status(401).send('Unauthorized');
+    const user = users.find(user => user.username === username && user.password === password);
+
+    if (!user) {
+        return res.status(401).send('Invalid username or password');
     }
+
+    const sessionId = uuidv4();
+    sessions[sessionId] = { sessionId, username, role: user.role };
+    res.json({ sessionId, role: user.role });
 });
-// Add a product (admin only)
-router.post('/products', isAdmin, (req, res) => {
-    const product = req.body;
+
+router.post('/products', isLoggedIn, isAdmin, (req, res) => {
+    const { name, description, price } = req.body;
+
+    if (!name || !description || typeof price !== 'number' || isNaN(price) || price < 0) {
+        return res.status(400).send('Invalid input');
+    }
+
+    const product = { id: uuidv4(), name, description, price };
     products.push(product);
-    res.status(201).send(product);
+    res.status(201).json({ message: 'Product added successfully', product });
 });
 
-
-// List products
 router.get('/products', (req, res) => {
-    res.json(products); // Change to JSON response
+    res.json(products);
 });
 
-// User registration
-router.post('/users/register', isLoggedIn, isAdmin, (req, res) => {
-    const { username, password, role } = req.body;
-    if (!username || !password || !role) {
-        return res.status(400).send('Missing required fields');
-    }
-    if (role !== 'user' && role !== 'admin') {
-        return res.status(400).send('Invalid role');
-    }
-    users.push({ username, password, role, purchases: [] });
-    res.status(201).send('User registered');
-});
-
-// Purchase a product
-router.post('/purchase', isLoggedIn, (req, res) => {
-    const { productId, quantity } = req.body;
-    const product = products.find(p => p.id === productId);
-    if (product && product.quantity >= quantity) {
-        product.quantity -= quantity;
-        const purchase = { productId, quantity, date: new Date() };
-        const user = users.find(u => u.username === req.user.username);
-        user.purchases.push(purchase);
-        res.send(purchase);
-    } else {
-        res.status(400).send('Invalid purchase');
-    }
-});
-
-// View purchase history
-router.get('/users/purchases', isLoggedIn, (req, res) => {
-    const user = users.find(u => u.username === req.user.username);
-    res.send(user.purchases);
-});
-
-// Delete a product (admin only)
-router.delete('/products/:id', isAdmin, (req, res) => {
+router.delete('/products/:id', isLoggedIn, isAdmin, (req, res) => {
     const id = req.params.id;
     const index = products.findIndex(p => p.id === id);
+
     if (index !== -1) {
         products.splice(index, 1);
         res.status(200).send('Product deleted');
     } else {
         res.status(404).send('Product not found');
     }
-});
-
-// Add a product (admin only)
-router.post('/products', isAdmin, (req, res) => {
-    const product = req.body;
-    // Add the product to your database
-    // ...
-    res.status(201).send('Product added');
 });
 
 module.exports = router;
