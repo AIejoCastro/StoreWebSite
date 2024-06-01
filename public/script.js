@@ -21,22 +21,30 @@ document.addEventListener('DOMContentLoaded', () => {
     // Render register form
     function renderRegisterForm() {
         app.innerHTML = `
-            <h2>Register</h2>
-            <form id="register-form">
-                <label for="username">Username:</label>
-                <input type="text" id="username" name="username" required>
-                <label for="password">Password:</label>
-                <input type="password" id="password" name="password" required>
-                <button type="submit">Register</button>
-            </form>
-        `;
+        <h2>Register</h2>
+        <form id="register-form">
+            <label for="username">Username:</label>
+            <input type="text" id="username" name="username" required>
+            <label for="password">Password:</label>
+            <input type="password" id="password" name="password" required>
+            <label for="role">Role:</label>
+            <select id="role" name="role" required>
+                <option value="user">User</option>
+                <option value="admin">Admin</option>
+            </select>
+            <button type="submit">Register</button>
+        </form>
+    `;
         document.getElementById('register-form').addEventListener('submit', register);
     }
 
-    function renderStore(role) {
+
+    function renderStore() {
         fetch('/products')
             .then(response => response.json())
-            .then(products => renderProductList(products, role));
+            .then(products => renderProductList(products));
+
+        const role = sessionStorage.getItem('role'); // Obtener el rol desde sessionStorage
 
         if (role === 'admin') {
             const adminButton = document.createElement('button');
@@ -46,9 +54,18 @@ document.addEventListener('DOMContentLoaded', () => {
             };
 
             const cartButtonContainer = document.getElementById('admin-cart-buttons');
-            cartButtonContainer.appendChild(adminButton);
+            if (cartButtonContainer) {
+                cartButtonContainer.appendChild(adminButton);
+            } else {
+                const newCartButtonContainer = document.createElement('div');
+                newCartButtonContainer.id = 'admin-cart-buttons';
+                newCartButtonContainer.appendChild(adminButton);
+                app.appendChild(newCartButtonContainer);
+            }
         }
     }
+
+
 
     function addProduct(event) {
         event.preventDefault();
@@ -128,9 +145,9 @@ document.addEventListener('DOMContentLoaded', () => {
             .then(data => {
                 if (data.sessionId) {
                     sessionStorage.setItem('sessionId', data.sessionId);
+                    sessionStorage.setItem('role', data.role); // Guardar el rol en sessionStorage
                     alert('Login successful');
-                    renderStore(data.role);
-                    window.location.href = 'store.html';
+                    window.location.href = 'store.html'; // Redirigir a la tienda después del login
                 } else {
                     alert('Login failed');
                 }
@@ -138,16 +155,22 @@ document.addEventListener('DOMContentLoaded', () => {
             .catch(error => console.error('Error:', error));
     }
 
+
+
     // Register function
     function register(event) {
         event.preventDefault();
         const username = event.target.username.value;
         const password = event.target.password.value;
+        const role = event.target.role.value;
 
         fetch('http://localhost:3000/api/users/register', {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ username, password })
+            headers: {
+                'Content-Type': 'application/json',
+                'session-id': sessionStorage.getItem('sessionId')
+            },
+            body: JSON.stringify({ username, password, role })
         })
             .then(response => response.text())
             .then(data => {
@@ -156,6 +179,7 @@ document.addEventListener('DOMContentLoaded', () => {
             })
             .catch(error => console.error('Error:', error));
     }
+
 
     // Render product list
     function renderProductList(products, role) {

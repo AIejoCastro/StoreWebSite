@@ -29,28 +29,24 @@ function isLoggedIn(req, res, next) {
 // User login
 router.post('/users/login', (req, res) => {
     const { username, password } = req.body;
-    let role = 'user';
-
-    if (username === 'admin' && password === '1234') {
-        role = 'admin';
-    }
-
     const user = users.find(u => u.username === username && u.password === password);
     if (user) {
         const sessionId = new Date().toISOString();
-        sessions[sessionId] = { role, username };
-        res.send({ sessionId, role });
+        sessions[sessionId] = { role: user.role, username: user.username };
+        res.send({ sessionId, role: user.role });
     } else {
         res.status(401).send('Unauthorized');
     }
 });
 
+
 // Add a product (admin only)
-router.post('/products', isAdmin, (req, res) => {
+router.post('/products', isLoggedIn, isAdmin, (req, res) => {
     const product = req.body;
     products.push(product);
-    res.status(201).send(product);
+    res.status(201).send('Product added');
 });
+
 
 // List products
 router.get('/products', (req, res) => {
@@ -58,9 +54,15 @@ router.get('/products', (req, res) => {
 });
 
 // User registration
-router.post('/users/register', (req, res) => {
-    const { username, password } = req.body;
-    users.push({ username, password, purchases: [] });
+router.post('/users/register', isLoggedIn, isAdmin, (req, res) => {
+    const { username, password, role } = req.body;
+    if (!username || !password || !role) {
+        return res.status(400).send('Missing required fields');
+    }
+    if (role !== 'user' && role !== 'admin') {
+        return res.status(400).send('Invalid role');
+    }
+    users.push({ username, password, role, purchases: [] });
     res.status(201).send('User registered');
 });
 
@@ -70,8 +72,8 @@ router.post('/users/login', (req, res) => {
     const user = users.find(u => u.username === username && u.password === password);
     if (user) {
         const sessionId = new Date().toISOString();
-        sessions[sessionId] = { role: 'user', username };
-        res.send({ sessionId });
+        sessions[sessionId] = { role: user.role, username };
+        res.send({ sessionId, role: user.role });
     } else {
         res.status(401).send('Unauthorized');
     }

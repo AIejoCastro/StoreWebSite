@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -7,13 +8,14 @@
     <link rel="stylesheet" href="menu.css">
     <script src="https://kit.fontawesome.com/a076d05399.js" crossorigin="anonymous"></script>
 </head>
+
 <body>
-<header>
-    <h1>Online Store</h1>
-    <!-- Contenedor para los botones del carrito y de administrador -->
-    <div id="admin-cart-buttons">
-        <!-- Botón para agregar productos -->
-        <!-- Este botón será agregado dinámicamente por JavaScript -->
+    <header>
+        <h1>Online Store</h1>
+        <!-- Contenedor para los botones del carrito y de administrador -->
+        <div id="admin-cart-buttons">
+            <!-- Botón para agregar productos se agregará dinámicamente por JavaScript -->
+        </div>
         <!-- Botón del carrito -->
         <div id="cart-icon">
             <i class="fas fa-shopping-cart"></i>
@@ -22,24 +24,186 @@
                 <ul></ul>
             </div>
         </div>
-    </div>
-</header>
+    </header>
 
-<main>
-    <form id="search-form">
-        <input type="text" id="search-input" placeholder="Looking for a product?">
-        <button type="submit">Search</button>
-    </form>
-    <section id="products-list">
-        <!-- Aquí se mostrará la lista de productos disponibles -->
-        <!-- Los productos se cargarán dinámicamente con JavaScript -->
-    </section>
-</main>
+    <main>
+        <form id="search-form">
+            <input type="text" id="search-input" placeholder="Looking for a product?">
+            <button type="submit">Search</button>
+        </form>
+        <section id="products-list">
+            <!-- Aquí se mostrará la lista de productos disponibles -->
+            <!-- Los productos se cargarán dinámicamente con JavaScript -->
+        </section>
+    </main>
 
-<footer>
-    <p>&copy; 2024 Online Store. All rights reserved.</p>
-</footer>
+    <footer>
+        <p>&copy; 2024 Online Store. All rights reserved.</p>
+    </footer>
 
-<script src="app.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const cart = [];
+
+            function renderProductList(products, role) {
+                const productsList = document.getElementById('products-list');
+                productsList.innerHTML = `
+            <h2>Products</h2>
+            <div class="product-list">
+                ${products.map(product => `
+                    <div class="product-item">
+                        <h3>${product.name}</h3>
+                        <p>${product.description}</p>
+                        <p>$${product.price}</p>
+                        <button onclick="addToCart(${product.id})">Add to Cart</button>
+                        ${role === 'admin' ? `<button onclick="deleteProduct(${product.id})">Delete</button>` : ''}
+                    </div>
+                `).join('')}
+            </div>
+        `;
+            }
+
+            function renderStore() {
+                const role = sessionStorage.getItem('role');
+
+                fetch('/api/products')
+                    .then(response => response.json())
+                    .then(products => renderProductList(products, role));
+
+                if (role === 'admin') {
+                    const adminButton = document.createElement('button');
+                    adminButton.textContent = 'Agregar Producto';
+                    adminButton.onclick = () => {
+                        window.location.href = '/add_product.html';
+                    };
+
+                    const cartButtonContainer = document.getElementById('admin-cart-buttons');
+                    if (cartButtonContainer) {
+                        cartButtonContainer.appendChild(adminButton);
+                    }
+                }
+            }
+
+            function deleteProduct(productId) {
+                fetch(`/api/products/${productId}`, {
+                    method: 'DELETE',
+                    headers: {
+                        'session-id': sessionStorage.getItem('sessionId')
+                    }
+                })
+                    .then(response => {
+                        if (response.ok) {
+                            fetch('/api/products')
+                                .then(response => response.json())
+                                .then(products => renderProductList(products, sessionStorage.getItem('role')));
+                        } else {
+                            console.error('Failed to delete product');
+                        }
+                    });
+            }
+
+            // Add to cart function
+            function addToCart(productId) {
+                // Logic to add product to cart
+            }
+
+            // Checkout function
+            function checkout() {
+                // Logic to checkout
+            }
+
+            function login(event) {
+                event.preventDefault();
+                const username = event.target.username.value;
+                const password = event.target.password.value;
+
+                fetch('/api/users/login', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ username, password })
+                })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.sessionId) {
+                            sessionStorage.setItem('sessionId', data.sessionId);
+                            sessionStorage.setItem('role', data.role);
+                            renderStore();
+                            window.location.href = 'store.html';
+                        } else {
+                            alert('Login failed');
+                        }
+                    })
+                    .catch(error => console.error('Error:', error));
+            }
+
+            function register(event) {
+                event.preventDefault();
+                const username = event.target.username.value;
+                const password = event.target.password.value;
+                const role = event.target.role.value;
+
+                fetch('/api/users/register', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ username, password, role })
+                })
+                    .then(response => response.text())
+                    .then(data => {
+                        alert(data);
+                        window.location.href = 'login.html';
+                    })
+                    .catch(error => console.error('Error:', error));
+            }
+
+            function renderLoginForm() {
+                app.innerHTML = `
+            <h2>Login</h2>
+            <form id="login-form">
+                <label for="username">Username:</label>
+                <input type="text" id="username" name="username" required>
+                <label for="password">Password:</label>
+                <input type="password" id="password" name="password" required>
+                <button type="submit">Login</button>
+            </form>
+        `;
+                document.getElementById('login-form').addEventListener('submit', login);
+            }
+
+            function renderRegisterForm() {
+                app.innerHTML = `
+            <h2>Register</h2>
+            <form id="register-form">
+                <label for="username">Username:</label>
+                <input type="text" id="username" name="username" required>
+                <label for="password">Password:</label>
+                <input type="password" id="password" name="password" required>
+                <label for="role">Role:</label>
+                <select id="role" name="role">
+                    <option value="user">User</option>
+                    <option value="admin">Admin</option>
+                </select>
+                <button type="submit">Register</button>
+            </form>
+        `;
+                document.getElementById('register-form').addEventListener('submit', register);
+            }
+
+            if (window.location.pathname.endsWith('login.html')) {
+                renderLoginForm();
+            } else if (window.location.pathname.endsWith('register.html')) {
+                renderRegisterForm();
+            } else if (window.location.pathname.endsWith('store.html')) {
+                renderStore();
+            }
+
+            if (window.location.pathname === '/' || window.location.pathname === '/index.html') {
+                if (!sessionStorage.getItem('sessionId')) {
+                    window.location.href = 'login.html';
+                }
+            }
+        });
+    </script>
+
 </body>
+
 </html>
