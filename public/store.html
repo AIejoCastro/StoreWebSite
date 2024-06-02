@@ -81,29 +81,12 @@
                         .catch(error => console.error('Error:', error));
                 };
 
-                function renderProductList(products, role) {
-                    const productsList = document.getElementById('products-list');
-                    productsList.innerHTML = `
-                        <div class="product-list">
-                            ${products.map(product => `
-                                <div class="product-item">
-                                    <h3>${product.name}</h3>
-                                    <p>${product.description}</p>
-                                    <p>$${product.price}</p>
-                                    <button onclick="addToCart('${product.id}')">Add to Cart</button>
-                                    ${role === 'admin' ? `<button onclick="deleteProduct('${product.id}')">Delete</button>` : ''}
-                                </div>
-                            `).join('')}
-                        </div>
-                    `;
-                }
 
                 function renderStore() {
-                    const role = sessionStorage.getItem('role');
+                    fetchProducts().then(products => {
+                        renderProductList(products);
 
-                    fetch('/api/products')
-                        .then(response => response.json())
-                        .then(products => renderProductList(products, role));
+                    const role = sessionStorage.getItem('role');
 
                     const cartButtonContainer = document.getElementById('admin-cart-buttons');
 
@@ -122,7 +105,47 @@
                         window.location.href = 'cart.html';
                     };
                     cartButtonContainer.appendChild(cartButton);
+                });
+                    document.getElementById('search-form').addEventListener('submit', handleSearch)
                 }
+
+            let allProducts = [];
+
+            function fetchProducts() {
+                return fetch('/api/products')
+                    .then(response => response.json())
+                    .then(products => {
+                        allProducts = products;
+                        return products;
+                    });
+            }
+
+            function renderProductList(products) {
+                const productsList = document.getElementById('products-list');
+                productsList.innerHTML = `
+            <div class="product-list">
+                ${products.map(product => `
+                    <div class="product-item">
+                        <h3>${product.name}</h3>
+                        <p>${product.description}</p>
+                        <p>$${product.price}</p>
+                        <button onclick="addToCart('${product.id}')">Add to Cart</button>
+                    </div>
+                `).join('')}
+            </div>
+        `;
+            }
+
+            function handleSearch(event) {
+                event.preventDefault();
+                const searchTerm = document.getElementById('search-input').value.toLowerCase();
+
+                const filteredProducts = allProducts.filter(product =>
+                    product.name.toLowerCase().includes(searchTerm)
+                );
+
+                renderProductList(filteredProducts);
+            }
 
                 function deleteProduct(productId) {
                     fetch(`/api/products/${productId}`, {

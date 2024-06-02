@@ -36,30 +36,46 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function renderStore() {
-        fetch('/api/products')
+        fetchProducts().then(products => {
+            renderProductList(products);
+
+            const role = sessionStorage.getItem('role');
+
+            const cartButtonContainer = document.getElementById('admin-cart-buttons');
+
+            if (role === 'admin') {
+                const adminButton = document.createElement('button');
+                adminButton.textContent = 'Add Product';
+                adminButton.onclick = () => {
+                    window.location.href = 'add_product.html';
+                };
+                cartButtonContainer.appendChild(adminButton);
+            }
+
+            const cartButton = document.createElement('button');
+            cartButton.textContent = 'View Cart';
+            cartButton.onclick = () => {
+                window.location.href = 'cart.html';
+            };
+            cartButtonContainer.appendChild(cartButton);
+        });
+        document.getElementById('search-form').addEventListener('submit', handleSearch)
+    }
+
+    let allProducts = [];
+
+    function fetchProducts() {
+        return fetch('/api/products')
             .then(response => response.json())
             .then(products => {
-                renderProductList(products);
-                const role = sessionStorage.getItem('role');
-                if (role === 'admin') {
-                    const adminButton = document.createElement('button');
-                    adminButton.textContent = 'Add Product';
-                    adminButton.onclick = () => {
-                        window.location.href = 'add_product.html';
-                    };
-                    app.appendChild(adminButton);
-                }
-                const cartButton = document.createElement('button');
-                cartButton.textContent = 'View Cart';
-                cartButton.onclick = () => {
-                    window.location.href = 'cart.html';
-                };
-                app.appendChild(cartButton);
+                allProducts = products;
+                return products;
             });
     }
 
     function renderProductList(products) {
-        app.innerHTML = `
+        const productsList = document.getElementById('products-list');
+        productsList.innerHTML = `
             <div class="product-list">
                 ${products.map(product => `
                     <div class="product-item">
@@ -71,6 +87,17 @@ document.addEventListener('DOMContentLoaded', () => {
                 `).join('')}
             </div>
         `;
+    }
+
+    function handleSearch(event) {
+        event.preventDefault();
+        const searchTerm = document.getElementById('search-input').value.toLowerCase();
+
+        const filteredProducts = allProducts.filter(product =>
+            product.name.toLowerCase().includes(searchTerm)
+        );
+
+        renderProductList(filteredProducts);
     }
 
     function renderAddProductForm() {
