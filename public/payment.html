@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Your Shopping Cart</title>
+    <title>Payment</title>
     <link rel="stylesheet" href="menu.css">
     <script src="https://kit.fontawesome.com/a076d05399.js" crossorigin="anonymous"></script>
     <script defer src="js/script.js"></script>
@@ -12,11 +12,11 @@
 
 <body>
     <header>
-        <h1>Your Shopping Cart</h1>
+        <h1>Payment</h1>
     </header>
 
-    <main id="app">
-        <!-- Aquí se mostrará el contenido del carrito -->
+    <main id="payment-app">
+        <!-- Aquí se mostrará el formulario de pago -->
     </main>
 
     <footer>
@@ -78,19 +78,19 @@
             function renderProductList(products, role) {
                 const productsList = document.getElementById('products-list');
                 productsList.innerHTML = `
-            <h2>Products</h2>
-            <div class="product-list">
-                ${products.map(product => `
-                    <div class="product-item">
-                        <h3>${product.name}</h3>
-                        <p>${product.description}</p>
-                        <p>$${product.price}</p>
-                        <button onclick="addToCart('${product.id}')">Add to Cart</button>
-                        ${role === 'admin' ? `<button onclick="deleteProduct('${product.id}')">Delete</button>` : ''}
+                    <h2>Products</h2>
+                    <div class="product-list">
+                        ${products.map(product => `
+                            <div class="product-item">
+                                <h3>${product.name}</h3>
+                                <p>${product.description}</p>
+                                <p>$${product.price}</p>
+                                <button onclick="addToCart('${product.id}')">Add to Cart</button>
+                                ${role === 'admin' ? `<button onclick="deleteProduct('${product.id}')">Delete</button>` : ''}
+                            </div>
+                        `).join('')}
                     </div>
-                `).join('')}
-            </div>
-        `;
+                `;
             }
 
             function renderStore() {
@@ -149,19 +149,19 @@
                             app.innerHTML = '<p>Your cart is empty.</p>';
                         } else {
                             app.innerHTML = `
-                    <h2>Your Shopping Cart</h2>
-                    <div class="cart-list">
-                        ${cartItems.map(item => `
-                            <div class="cart-item">
-                                <h3>${item.name}</h3>
-                                <p>${item.description}</p>
-                                <p>$${item.price}</p>
-                                <button onclick="removeFromCart('${item.id}')">Remove from Cart</button>
-                            </div>
-                        `).join('')}
-                    </div>
-                    <button id="checkout-button">Proceed to Payment</button>
-                `;
+                                <h2>Your Shopping Cart</h2>
+                                <div class="cart-list">
+                                    ${cartItems.map(item => `
+                                        <div class="cart-item">
+                                            <h3>${item.name}</h3>
+                                            <p>${item.description}</p>
+                                            <p>$${item.price}</p>
+                                            <button onclick="removeFromCart('${item.id}')">Remove from Cart</button>
+                                        </div>
+                                    `).join('')}
+                                </div>
+                                <button id="checkout-button">Proceed to Payment</button>
+                            `;
 
                             document.getElementById('checkout-button').onclick = () => {
                                 window.location.href = 'payment.html';
@@ -188,23 +188,23 @@
             function renderPaymentForm() {
                 if (paymentApp) {
                     paymentApp.innerHTML = `
-                <h2>Payment Information</h2>
-                <form id="payment-form">
-                    <div>
-                        <label for="card-number">Card Number:</label>
-                        <input type="text" id="card-number" required>
-                    </div>
-                    <div>
-                        <label for="expiry-date">Expiry Date:</label>
-                        <input type="text" id="expiry-date" required>
-                    </div>
-                    <div>
-                        <label for="cvv">CVV:</label>
-                        <input type="text" id="cvv" required>
-                    </div>
-                    <button type="submit">Pay Now</button>
-                </form>
-            `;
+                        <h2>Payment Information</h2>
+                        <form id="payment-form">
+                            <div>
+                                <label for="card-number">Card Number:</label>
+                                <input type="text" id="card-number" required>
+                            </div>
+                            <div>
+                                <label for="expiry-date">Expiry Date:</label>
+                                <input type="text" id="expiry-date" required>
+                            </div>
+                            <div>
+                                <label for="cvv">CVV:</label>
+                                <input type="text" id="cvv" required>
+                            </div>
+                            <button type="submit">Pay Now</button>
+                        </form>
+                    `;
 
                     document.getElementById('payment-form').onsubmit = function (event) {
                         event.preventDefault();
@@ -243,6 +243,7 @@
 
             updateCartItemCount();
         });
+
     </script>
 
 </body>
