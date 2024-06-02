@@ -60,7 +60,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function renderProductList(products) {
         app.innerHTML = `
-            <h2>Products</h2>
             <div class="product-list">
                 ${products.map(product => `
                     <div class="product-item">
@@ -83,7 +82,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 <input type="text" id="description" name="description" required>
                 <label for="price">Price:</label>
                 <input type="number" id="price" name="price" required>
-                <button type="submit">Add Product</button>
+                <button type="submit" style="margin-right: 30px">Add Product</button>
             </form>
         `;
         document.getElementById('add-product-form').addEventListener('submit', addProduct);

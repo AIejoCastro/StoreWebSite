@@ -16,16 +16,10 @@
         <div id="admin-cart-buttons">
             <!-- Aquí se agregarán dinámicamente los botones de administrador y carrito -->
         </div>
-        <div id="cart-icon">
-            <i class="fas fa-shopping-cart"></i>
-            <div id="cart-items" class="cart-items">0</div>
-            <div id="cart-dropdown" class="cart-dropdown">
-                <ul></ul>
-            </div>
-        </div>
     </header>
 
     <main>
+        <h2 id="products-h2">Products</h2>
         <form id="search-form">
             <input type="text" id="search-input" placeholder="Looking for a product?">
             <button type="submit">Search</button>
@@ -92,7 +86,6 @@
                 function renderProductList(products, role) {
                     const productsList = document.getElementById('products-list');
                     productsList.innerHTML = `
-            <h2>Products</h2>
             <div class="product-list">
                 ${products.map(product => `
                     <div class="product-item">
