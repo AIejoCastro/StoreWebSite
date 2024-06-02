@@ -107,7 +107,7 @@ header h1 {
 }
 
 .product-list .product-item {
-    width: 18%;
+    width: 20%;
     margin: 2rem;
     padding: 1rem;
     border: 1px solid #ccc;
@@ -195,4 +195,11 @@ footer {
     padding: 1rem 0;
     background-color: #333;
     color: #fff;
+    text-align: center;
+    padding: 1rem 0;
+    background-color: #333;
+    color: #fff;
+    position: fixed;
+    bottom: 0;
+    width: 100%;
 }
