@@ -88,7 +88,6 @@ document.addEventListener('DOMContentLoaded', () => {
         `;
         document.getElementById('add-product-form').addEventListener('submit', addProduct);
     }
-
     function renderCart() {
         fetch('/api/cart', {
             headers: {
@@ -104,12 +103,12 @@ document.addEventListener('DOMContentLoaded', () => {
                     cartList.innerHTML = '<p>Your cart is empty</p>';
                 } else {
                     cartList.innerHTML = cartItems.map(item => `
-                <div class="cart-item">
-                    <h3>${item.name}</h3>
-                    <p>${item.description}</p>
-                    <p>$${item.price}</p>
-                    <button onclick="removeFromCart('${item.id}')">Remove from Cart</button>
-                </div>
+                        <div class="cart-item">
+                            <h3>${item.name}</h3>
+                            <p>${item.description}</p>
+                            <p>$${item.price}</p>
+                            <button onclick="removeFromCart('${item.id}')">Remove from Cart</button>
+                        </div>
             `).join('');
                 }
 

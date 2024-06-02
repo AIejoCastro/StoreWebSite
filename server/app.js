@@ -150,11 +150,11 @@ app.delete('/api/products/:id', isAdmin, (req, res) => {
     }
 });
 
-// Capture all other routes and redirect to the main page
+// Capture all other routes and redirect to the login page
 app.get('*', (req, res) => {
-    res.sendFile(path.join(__dirname, '../public', 'store.html'));
+    res.sendFile(path.join(__dirname, '../public', 'login.html'));
 });
 
 app.listen(port, () => {
-    console.log(`Server running on http://localhost:${port}`);
+    console.log(`Server running on http://localhost:${port}/login.html`);
 });

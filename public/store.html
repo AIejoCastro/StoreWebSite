@@ -41,11 +41,57 @@
 
     <script>
         document.addEventListener('DOMContentLoaded', () => {
-            const app = document.getElementById('app');
+                const app = document.getElementById('app');
 
-            function renderProductList(products, role) {
-                const productsList = document.getElementById('products-list');
-                productsList.innerHTML = `
+                window.addToCart = function (productId) {
+                    const sessionId = sessionStorage.getItem('sessionId');
+                    if (!sessionId) {
+                        alert('You must be logged in to add products to the cart');
+                        return;
+                    }
+
+                    fetch('/api/cart/add', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'session-id': sessionId
+                        },
+                        body: JSON.stringify({ productId })
+                    })
+                        .then(response => response.json())
+                        .then(data => {
+                            if (data.error) {
+                                alert(data.error);
+                            } else {
+                                alert('Product added to cart');
+                            }
+                        })
+                        .catch(error => console.error('Error:', error));
+                };
+
+                window.removeFromCart = function (productId) {
+                    fetch('/api/cart/remove', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'session-id': sessionStorage.getItem('sessionId')
+                        },
+                        body: JSON.stringify({ productId })
+                    })
+                        .then(response => response.json())
+                        .then(data => {
+                            if (data.error) {
+                                alert(data.error);
+                            } else {
+                                renderCart();
+                            }
+                        })
+                        .catch(error => console.error('Error:', error));
+                };
+
+                function renderProductList(products, role) {
+                    const productsList = document.getElementById('products-list');
+                    productsList.innerHTML = `
             <h2>Products</h2>
             <div class="product-list">
                 ${products.map(product => `
@@ -59,132 +105,84 @@
                 `).join('')}
             </div>
         `;
-            }
+                }
 
-            function renderStore() {
-                const role = sessionStorage.getItem('role');
+                function renderStore() {
+                    const role = sessionStorage.getItem('role');
 
-                fetch('/api/products')
-                    .then(response => response.json())
-                    .then(products => renderProductList(products, role));
+                    fetch('/api/products')
+                        .then(response => response.json())
+                        .then(products => renderProductList(products, role));
 
-                const cartButtonContainer = document.getElementById('admin-cart-buttons');
+                    const cartButtonContainer = document.getElementById('admin-cart-buttons');
 
-                if (role === 'admin') {
-                    const adminButton = document.createElement('button');
-                    adminButton.textContent = 'Add Product';
-                    adminButton.onclick = () => {
-                        window.location.href = 'add_product.html';
+                    if (role === 'admin') {
+                        const adminButton = document.createElement('button');
+                        adminButton.textContent = 'Add Product';
+                        adminButton.onclick = () => {
+                            window.location.href = 'add_product.html';
+                        };
+                        cartButtonContainer.appendChild(adminButton);
+                    }
+
+                    const cartButton = document.createElement('button');
+                    cartButton.textContent = 'View Cart';
+                    cartButton.onclick = () => {
+                        window.location.href = 'cart.html';
                     };
-                    cartButtonContainer.appendChild(adminButton);
+                    cartButtonContainer.appendChild(cartButton);
                 }
 
-                const cartButton = document.createElement('button');
-                cartButton.textContent = 'View Cart';
-                cartButton.onclick = () => {
-                    window.location.href = 'cart.html';
-                };
-                cartButtonContainer.appendChild(cartButton);
-            }
-
-            function deleteProduct(productId) {
-                fetch(`/api/products/${productId}`, {
-                    method: 'DELETE',
-                    headers: {
-                        'session-id': sessionStorage.getItem('sessionId')
-                    }
-                })
-                    .then(response => {
-                        if (response.ok) {
-                            fetch('/api/products')
-                                .then(response => response.json())
-                                .then(products => renderProductList(products, sessionStorage.getItem('role')));
-                        } else {
-                            console.error('Failed to delete product');
+                function deleteProduct(productId) {
+                    fetch(`/api/products/${productId}`, {
+                        method: 'DELETE',
+                        headers: {
+                            'session-id': sessionStorage.getItem('sessionId')
                         }
-                    });
-            }
-
-            function addToCart(productId) {
-                const sessionId = sessionStorage.getItem('sessionId');
-                if (!sessionId) {
-                    alert('You must be logged in to add products to the cart');
-                    return;
+                    })
+                        .then(response => {
+                            if (response.ok) {
+                                fetch('/api/products')
+                                    .then(response => response.json())
+                                    .then(products => renderProductList(products, sessionStorage.getItem('role')));
+                            } else {
+                                console.error('Failed to delete product');
+                            }
+                        });
                 }
 
-                fetch('/api/cart/add', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'session-id': sessionId
-                    },
-                    body: JSON.stringify({ productId })
-                })
-                    .then(response => response.json())
-                    .then(data => {
-                        if (data.error) {
-                            alert(data.error);
-                        } else {
-                            alert('Product added to cart');
+                function renderCart() {
+                    fetch('/api/cart', {
+                        headers: {
+                            'session-id': sessionStorage.getItem('sessionId')
                         }
                     })
-                    .catch(error => console.error('Error:', error));
-            }
+                        .then(response => response.json())
+                        .then(cartItems => {
+                            app.innerHTML = `
+                <h2>Your Shopping Cart</h2>
+                <div class="cart-list">
+                    ${cartItems.map(item => `
+                        <div class="cart-item">
+                            <h3>${item.name}</h3>
+                            <p>${item.description}</p>
+                            <p>$${item.price}</p>
+                            <button onclick="removeFromCart('${item.id}')">Remove from Cart</button>
+                        </div>
+                    `).join('')}
+                </div>
+            `;
+                        })
+                        .catch(error => console.error('Error:', error));
+                }
 
-            function renderCart() {
-                fetch('/api/cart', {
-                    headers: {
-                        'session-id': sessionStorage.getItem('sessionId')
-                    }
-                })
-                    .then(response => response.json())
-                    .then(cartItems => {
-                        app.innerHTML = `
-                    <h2>Your Shopping Cart</h2>
-                    <div class="cart-list">
-                        ${cartItems.map(item => `
-                            <div class="cart-item">
-                                <h3>${item.name}</h3>
-                                <p>${item.description}</p>
-                                <p>$${item.price}</p>
-                                <button onclick="removeFromCart('${item.id}')">Remove from Cart</button>
-                            </div>
-                        `).join('')}
-                    </div>
-                `;
-                    })
-                    .catch(error => console.error('Error:', error));
-            }
-
-            function removeFromCart(productId) {
-                fetch('/api/cart/remove', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'session-id': sessionStorage.getItem('sessionId')
-                    },
-                    body: JSON.stringify({ productId })
-                })
-                    .then(response => response.json())
-                    .then(data => {
-                        if (data.error) {
-                            alert(data.error);
-                        } else {
-                            renderCart();
-                        }
-                    })
-                    .catch(error => console.error('Error:', error));
-            }
-
-            if (window.location.pathname.endsWith('store.html')) {
-                renderStore();
-            } else if (window.location.pathname.endsWith('cart.html')) {
-                renderCart();
-            }
-        });
-
+                if (window.location.pathname.endsWith('store.html')) {
+                    renderStore();
+                } else if (window.location.pathname.endsWith('cart.html')) {
+                    renderCart();
+                }
+            });
     </script>
-
 </body>
 
 </html>
