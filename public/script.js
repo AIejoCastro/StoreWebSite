@@ -49,6 +49,12 @@ document.addEventListener('DOMContentLoaded', () => {
                     };
                     app.appendChild(adminButton);
                 }
+                const cartButton = document.createElement('button');
+                cartButton.textContent = 'View Cart';
+                cartButton.onclick = () => {
+                    window.location.href = 'cart.html';
+                };
+                app.appendChild(cartButton);
             });
     }
 
@@ -61,7 +67,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         <h3>${product.name}</h3>
                         <p>${product.description}</p>
                         <p>$${product.price}</p>
-                        <button onclick="addToCart(${product.id})">Add to Cart</button>
+                        <button onclick="addToCart('${product.id}')">Add to Cart</button>
                     </div>
                 `).join('')}
             </div>
@@ -70,7 +76,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function renderAddProductForm() {
         app.innerHTML = `
-            <h2>Add Product</h2>
             <form id="add-product-form">
                 <label for="name">Name:</label>
                 <input type="text" id="name" name="name" required>
@@ -82,6 +87,36 @@ document.addEventListener('DOMContentLoaded', () => {
             </form>
         `;
         document.getElementById('add-product-form').addEventListener('submit', addProduct);
+    }
+
+    function renderCart() {
+        fetch('/api/cart', {
+            headers: {
+                'session-id': sessionStorage.getItem('sessionId')
+            }
+        })
+            .then(response => response.json())
+            .then(cartItems => {
+                const cartList = document.createElement('div');
+                cartList.classList.add('cart-list');
+
+                if (cartItems.length === 0) {
+                    cartList.innerHTML = '<p>Your cart is empty</p>';
+                } else {
+                    cartList.innerHTML = cartItems.map(item => `
+                <div class="cart-item">
+                    <h3>${item.name}</h3>
+                    <p>${item.description}</p>
+                    <p>$${item.price}</p>
+                    <button onclick="removeFromCart('${item.id}')">Remove from Cart</button>
+                </div>
+            `).join('');
+                }
+
+                app.innerHTML = '<h2>Your Shopping Cart</h2>';
+                app.appendChild(cartList);
+            })
+            .catch(error => console.error('Error:', error));
     }
 
     function login(event) {
@@ -149,6 +184,52 @@ document.addEventListener('DOMContentLoaded', () => {
             .catch(error => console.error('Error:', error));
     }
 
+    function addToCart(productId) {
+        const sessionId = sessionStorage.getItem('sessionId');
+        if (!sessionId) {
+            alert('You must be logged in to add products to the cart');
+            return;
+        }
+
+        fetch('/api/cart/add', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'session-id': sessionId
+            },
+            body: JSON.stringify({ productId })
+        })
+            .then(response => response.json())
+            .then(data => {
+                if (data.error) {
+                    alert(data.error);
+                } else {
+                    alert('Product added to cart');
+                }
+            })
+            .catch(error => console.error('Error:', error));
+    }
+
+    function removeFromCart(productId) {
+        fetch('/api/cart/remove', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'session-id': sessionStorage.getItem('sessionId')
+            },
+            body: JSON.stringify({ productId })
+        })
+            .then(response => response.json())
+            .then(data => {
+                if (data.error) {
+                    alert(data.error);
+                } else {
+                    renderCart();
+                }
+            })
+            .catch(error => console.error('Error:', error));
+    }
+
     if (window.location.pathname.endsWith('login.html')) {
         renderLoginForm();
     } else if (window.location.pathname.endsWith('register.html')) {
@@ -157,5 +238,7 @@ document.addEventListener('DOMContentLoaded', () => {
         renderStore();
     } else if (window.location.pathname.endsWith('add_product.html')) {
         renderAddProductForm();
+    } else if (window.location.pathname.endsWith('cart.html')) {
+        renderCart();
     }
 });

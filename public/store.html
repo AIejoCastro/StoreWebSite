@@ -7,16 +7,15 @@
     <title>Online Store</title>
     <link rel="stylesheet" href="menu.css">
     <script src="https://kit.fontawesome.com/a076d05399.js" crossorigin="anonymous"></script>
+    <script defer src="js/script.js"></script>
 </head>
 
 <body>
     <header>
         <h1>Online Store</h1>
-        <!-- Contenedor para los botones del carrito y de administrador -->
         <div id="admin-cart-buttons">
-            <!-- Botón para agregar productos se agregará dinámicamente por JavaScript -->
+            <!-- Aquí se agregarán dinámicamente los botones de administrador y carrito -->
         </div>
-        <!-- Botón del carrito -->
         <div id="cart-icon">
             <i class="fas fa-shopping-cart"></i>
             <div id="cart-items" class="cart-items">0</div>
@@ -33,7 +32,6 @@
         </form>
         <section id="products-list">
             <!-- Aquí se mostrará la lista de productos disponibles -->
-            <!-- Los productos se cargarán dinámicamente con JavaScript -->
         </section>
     </main>
 
@@ -43,7 +41,7 @@
 
     <script>
         document.addEventListener('DOMContentLoaded', () => {
-            const cart = [];
+            const app = document.getElementById('app');
 
             function renderProductList(products, role) {
                 const productsList = document.getElementById('products-list');
@@ -55,8 +53,8 @@
                         <h3>${product.name}</h3>
                         <p>${product.description}</p>
                         <p>$${product.price}</p>
-                        <button onclick="addToCart(${product.id})">Add to Cart</button>
-                        ${role === 'admin' ? `<button onclick="deleteProduct(${product.id})">Delete</button>` : ''}
+                        <button onclick="addToCart('${product.id}')">Add to Cart</button>
+                        ${role === 'admin' ? `<button onclick="deleteProduct('${product.id}')">Delete</button>` : ''}
                     </div>
                 `).join('')}
             </div>
@@ -70,18 +68,23 @@
                     .then(response => response.json())
                     .then(products => renderProductList(products, role));
 
+                const cartButtonContainer = document.getElementById('admin-cart-buttons');
+
                 if (role === 'admin') {
                     const adminButton = document.createElement('button');
-                    adminButton.textContent = 'Agregar Producto';
+                    adminButton.textContent = 'Add Product';
                     adminButton.onclick = () => {
-                        window.location.href = '/add_product.html';
+                        window.location.href = 'add_product.html';
                     };
-
-                    const cartButtonContainer = document.getElementById('admin-cart-buttons');
-                    if (cartButtonContainer) {
-                        cartButtonContainer.appendChild(adminButton);
-                    }
+                    cartButtonContainer.appendChild(adminButton);
                 }
+
+                const cartButton = document.createElement('button');
+                cartButton.textContent = 'View Cart';
+                cartButton.onclick = () => {
+                    window.location.href = 'cart.html';
+                };
+                cartButtonContainer.appendChild(cartButton);
             }
 
             function deleteProduct(productId) {
@@ -102,106 +105,84 @@
                     });
             }
 
-            // Add to cart function
             function addToCart(productId) {
-                // Logic to add product to cart
-            }
+                const sessionId = sessionStorage.getItem('sessionId');
+                if (!sessionId) {
+                    alert('You must be logged in to add products to the cart');
+                    return;
+                }
 
-            // Checkout function
-            function checkout() {
-                // Logic to checkout
-            }
-
-            function login(event) {
-                event.preventDefault();
-                const username = event.target.username.value;
-                const password = event.target.password.value;
-
-                fetch('/api/users/login', {
+                fetch('/api/cart/add', {
                     method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ username, password })
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'session-id': sessionId
+                    },
+                    body: JSON.stringify({ productId })
                 })
                     .then(response => response.json())
                     .then(data => {
-                        if (data.sessionId) {
-                            sessionStorage.setItem('sessionId', data.sessionId);
-                            sessionStorage.setItem('role', data.role);
-                            renderStore();
-                            window.location.href = 'store.html';
+                        if (data.error) {
+                            alert(data.error);
                         } else {
-                            alert('Login failed');
+                            alert('Product added to cart');
                         }
                     })
                     .catch(error => console.error('Error:', error));
             }
 
-            function register(event) {
-                event.preventDefault();
-                const username = event.target.username.value;
-                const password = event.target.password.value;
-                const role = event.target.role.value;
-
-                fetch('/api/users/register', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ username, password, role })
+            function renderCart() {
+                fetch('/api/cart', {
+                    headers: {
+                        'session-id': sessionStorage.getItem('sessionId')
+                    }
                 })
-                    .then(response => response.text())
-                    .then(data => {
-                        alert(data);
-                        window.location.href = 'login.html';
+                    .then(response => response.json())
+                    .then(cartItems => {
+                        app.innerHTML = `
+                    <h2>Your Shopping Cart</h2>
+                    <div class="cart-list">
+                        ${cartItems.map(item => `
+                            <div class="cart-item">
+                                <h3>${item.name}</h3>
+                                <p>${item.description}</p>
+                                <p>$${item.price}</p>
+                                <button onclick="removeFromCart('${item.id}')">Remove from Cart</button>
+                            </div>
+                        `).join('')}
+                    </div>
+                `;
                     })
                     .catch(error => console.error('Error:', error));
             }
 
-            function renderLoginForm() {
-                app.innerHTML = `
-            <h2>Login</h2>
-            <form id="login-form">
-                <label for="username">Username:</label>
-                <input type="text" id="username" name="username" required>
-                <label for="password">Password:</label>
-                <input type="password" id="password" name="password" required>
-                <button type="submit">Login</button>
-            </form>
-        `;
-                document.getElementById('login-form').addEventListener('submit', login);
+            function removeFromCart(productId) {
+                fetch('/api/cart/remove', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'session-id': sessionStorage.getItem('sessionId')
+                    },
+                    body: JSON.stringify({ productId })
+                })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.error) {
+                            alert(data.error);
+                        } else {
+                            renderCart();
+                        }
+                    })
+                    .catch(error => console.error('Error:', error));
             }
 
-            function renderRegisterForm() {
-                app.innerHTML = `
-            <h2>Register</h2>
-            <form id="register-form">
-                <label for="username">Username:</label>
-                <input type="text" id="username" name="username" required>
-                <label for="password">Password:</label>
-                <input type="password" id="password" name="password" required>
-                <label for="role">Role:</label>
-                <select id="role" name="role">
-                    <option value="user">User</option>
-                    <option value="admin">Admin</option>
-                </select>
-                <button type="submit">Register</button>
-            </form>
-        `;
-                document.getElementById('register-form').addEventListener('submit', register);
-            }
-
-            if (window.location.pathname.endsWith('login.html')) {
-                renderLoginForm();
-            } else if (window.location.pathname.endsWith('register.html')) {
-                renderRegisterForm();
-            } else if (window.location.pathname.endsWith('store.html')) {
+            if (window.location.pathname.endsWith('store.html')) {
                 renderStore();
-            }
-
-            if (window.location.pathname === '/' || window.location.pathname === '/index.html') {
-                if (!sessionStorage.getItem('sessionId')) {
-                    window.location.href = 'login.html';
-                }
+            } else if (window.location.pathname.endsWith('cart.html')) {
+                renderCart();
             }
         });
+
     </script>
 
 </body>

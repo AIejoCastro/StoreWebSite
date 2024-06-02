@@ -5,6 +5,7 @@ const { v4: uuidv4 } = require('uuid');
 let products = [];
 let users = [];
 let sessions = {};
+let carts = {}; // Carritos de compras de los usuarios
 
 function isAdmin(req, res, next) {
     const session = sessions[req.headers['session-id']];
@@ -76,6 +77,30 @@ router.delete('/products/:id', isLoggedIn, isAdmin, (req, res) => {
     } else {
         res.status(404).send('Product not found');
     }
+});
+
+// Ruta para obtener el carrito de compras del usuario
+router.get('/cart', isLoggedIn, (req, res) => {
+    const userId = req.user.username;
+    const userCart = carts[userId] || [];
+    res.json(userCart);
+});
+
+// Ruta para añadir un producto al carrito de compras
+router.post('/cart/add', isLoggedIn, (req, res) => {
+    const userId = req.user.username;
+    const { productId } = req.body;
+
+    if (!productId) {
+        return res.status(400).send('Producto no especificado');
+    }
+
+    if (!carts[userId]) {
+        carts[userId] = [];
+    }
+
+    carts[userId].push(productId);
+    res.json({ message: 'Producto añadido al carrito', cart: carts[userId] });
 });
 
 module.exports = router;
