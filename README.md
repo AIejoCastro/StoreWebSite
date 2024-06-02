@@ -20,12 +20,12 @@ Esta es una aplicación de tienda en línea que permite a los usuarios navegar p
 1. Clona el repositorio a tu máquina local:
 
    ```bash
-   git clone https://github.com/tu-usuario/online-store.git
+   git clone https://github.com/AIejoCastro/StoreWebSite.git
 
 2. Navega al directorio del proyecto:
 
    ```bash
-   cd online-store
+   cd StoreWebSite
 
 3. Instala las dependencias necesarias:
 
