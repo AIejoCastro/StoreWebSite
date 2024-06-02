@@ -14,7 +14,6 @@
     <header>
         <h1>Online Store</h1>
         <div id="admin-cart-buttons">
-            <!-- Aquí se agregarán dinámicamente los botones de administrador y carrito -->
         </div>
     </header>
 
@@ -25,7 +24,6 @@
             <button type="submit">Search</button>
         </form>
         <section id="products-list">
-            <!-- Aquí se mostrará la lista de productos disponibles -->
         </section>
     </main>
 
@@ -86,18 +84,18 @@
                 function renderProductList(products, role) {
                     const productsList = document.getElementById('products-list');
                     productsList.innerHTML = `
-            <div class="product-list">
-                ${products.map(product => `
-                    <div class="product-item">
-                        <h3>${product.name}</h3>
-                        <p>${product.description}</p>
-                        <p>$${product.price}</p>
-                        <button onclick="addToCart('${product.id}')">Add to Cart</button>
-                        ${role === 'admin' ? `<button onclick="deleteProduct('${product.id}')">Delete</button>` : ''}
-                    </div>
-                `).join('')}
-            </div>
-        `;
+                        <div class="product-list">
+                            ${products.map(product => `
+                                <div class="product-item">
+                                    <h3>${product.name}</h3>
+                                    <p>${product.description}</p>
+                                    <p>$${product.price}</p>
+                                    <button onclick="addToCart('${product.id}')">Add to Cart</button>
+                                    ${role === 'admin' ? `<button onclick="deleteProduct('${product.id}')">Delete</button>` : ''}
+                                </div>
+                            `).join('')}
+                        </div>
+                    `;
                 }
 
                 function renderStore() {
@@ -153,18 +151,17 @@
                         .then(response => response.json())
                         .then(cartItems => {
                             app.innerHTML = `
-                <h2>Your Shopping Cart</h2>
-                <div class="cart-list">
-                    ${cartItems.map(item => `
-                        <div class="cart-item">
-                            <h3>${item.name}</h3>
-                            <p>${item.description}</p>
-                            <p>$${item.price}</p>
-                            <button onclick="removeFromCart('${item.id}')">Remove from Cart</button>
-                        </div>
-                    `).join('')}
-                </div>
-            `;
+                                <div class="cart-list">
+                                    ${cartItems.map(item => `
+                                        <div class="cart-item">
+                                            <h3>${item.name}</h3>
+                                                <p>${item.description}</p>
+                                                <p>$${item.price}</p>
+                                                <button onclick="removeFromCart('${item.id}')">Remove from Cart</button>
+                                        </div>
+                                    `).join('')}
+                                </div>
+            `       ;
                         })
                         .catch(error => console.error('Error:', error));
                 }

@@ -110,9 +110,6 @@ document.addEventListener('DOMContentLoaded', () => {
                         </div>
             `).join('');
                 }
-
-                app.innerHTML = '<h2>Your Shopping Cart</h2>';
-                app.appendChild(cartList);
             })
             .catch(error => console.error('Error:', error));
     }
