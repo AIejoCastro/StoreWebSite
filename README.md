@@ -39,7 +39,7 @@ Esta es una aplicación de tienda en línea que permite a los usuarios navegar p
    ```bash
    node server/app.js
 
-El servidor se iniciará y estará escuchando en el puerto especificado (por defecto 3000). Puedes acceder a la aplicación navegando a http://localhost:3000 en tu navegador web.
+El servidor se iniciará y estará escuchando en el puerto especificado (por defecto 3000). Puedes acceder a la aplicación navegando a http://localhost:3000/login.html en tu navegador web.
 
 ## Funcionalidades
 
